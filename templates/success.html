@@ -22,11 +22,17 @@
     </div>
     <div class="box">
       <h2>Red Flags</h2>
-      <p>{{ red_flags }}</p>
+      <ol>
+        {% for flag in red_flags.split("\n\n") %}
+          <ul>{{ flag }}</ul>
+        {% endfor %}
+      </ol>
     </div>
     <div class="box">
       <h2>Suggested Improvements</h2>
-      <p>{{ suggested_improvements }}</p>
+      <ol>
+        {{ suggestions }}
+      </ol>
     </div>
   </body>
 </html>
