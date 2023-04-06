@@ -1,0 +1,80 @@
+/* Set font to Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Set primary color to a dark maroon */
+:root {
+  --primary-color: #4B0000;
+}
+
+/* Set secondary color to a lighter maroon */
+:root {
+  --secondary-color: #8B0000;
+}
+
+/* Set link color to a brighter maroon */
+a {
+  color: #B22222;
+}
+
+/* Set background color to a very light maroon */
+body {
+  background-color: #F5DEB3;
+}
+
+/* Style headers */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-color);
+}
+
+/* Style buttons */
+button, input[type="submit"] {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Style text inputs */
+input[type="text"], textarea {
+  border: 1px solid var(--secondary-color);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 16px;
+  resize: none;
+}
+
+/* Style labels */
+label {
+  color: var(--primary-color);
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* Style boxes */
+.box {
+  border: 1px solid var(--secondary-color);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Style lists */
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+li::before {
+  content: "•";
+  color: var(--primary-color);
+  display: inline-block;
+  width: 1em;
+  margin-left: -1em;
+}
