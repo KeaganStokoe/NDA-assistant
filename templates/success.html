@@ -21,17 +21,11 @@
       <p>{{ summary }}</p>
     </div>
     <div class="box">
-      <h2>Red Flags</h2>
+      <h2>Suggested Improvements</h2>
       <ol>
         {% for flag in red_flags.split("\n\n") %}
           <ul>{{ flag }}</ul>
         {% endfor %}
-      </ol>
-    </div>
-    <div class="box">
-      <h2>Suggested Improvements</h2>
-      <ol>
-        {{ suggestions }}
       </ol>
     </div>
   </body>

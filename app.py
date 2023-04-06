@@ -78,7 +78,7 @@ def summarize_agreement(docs):
 
     result = chain({"input_documents": docs}, return_only_outputs=True)
 
-    return result
+    return result['output_text']
 
 def identify_red_flags(docs):
     prompt_template = """You are the world's leading expert on Non-Disclosure Agreements. You are know for reading these agreements, identifying risks that aren't covered by the agreement, and suggesting improvements that help all parties involved. You can use the context below to help you understand the agreement:
@@ -118,9 +118,6 @@ def identify_red_flags(docs):
     result = chain({"input_documents": docs}, return_only_outputs=True)
     return result['intermediate_steps'][0]
 
-def identify_suggested_improvements(docs):
-    pass
-
 @app.route('/success')
 def success():
     docs = ingest_pdf()
@@ -129,21 +126,12 @@ def success():
         # Submit the three functions to the executor
         summarize_agreement_future = executor.submit(summarize_agreement, docs)
         identify_red_flags_future = executor.submit(identify_red_flags, docs)
-        identify_suggested_improvements_future = executor.submit(identify_suggested_improvements, docs)
 
         # Get the results from the futures
-        agreement_summary = summarize_agreement_future.result()
+        summary = summarize_agreement_future.result()
         red_flags = identify_red_flags_future.result()
-        suggested_improvements = identify_suggested_improvements_future.result()
 
-    pretty_result = json.dumps(agreement_summary, indent=4)
-    print(pretty_result)
-    summary = agreement_summary["output_text"]
-
-    pretty_red_flags = json.dumps(red_flags, indent=4)
-    print(pretty_red_flags)
-
-    return render_template('success.html', summary=summary, red_flags=red_flags, suggested_improvements=suggested_improvements)
+    return render_template('success.html', summary=summary, red_flags=red_flags)
 
 if __name__ == '__main__':
     app.run(debug=True)
