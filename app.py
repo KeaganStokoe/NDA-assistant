@@ -6,8 +6,10 @@ from langchain.prompts import PromptTemplate
 from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
 from langchain.document_loaders import PyPDFLoader
+from langchain.chat_models import ChatOpenAI
 import os
 from dotenv import load_dotenv
+import json
 
 # load environment variables from .env file
 load_dotenv()
@@ -29,14 +31,13 @@ def upload():
     file.save('agreements/' + file.filename)
     return redirect(url_for('success'))
 
-
-def summarize_agreement():
-    loader = PyPDFLoader("agreements/test1.pdf")
+def ingest_pdf():
+    loader = PyPDFLoader("agreements/test3.pdf")
     pages = loader.load_and_split()
+    return pages
 
-    # docs = [Document(page_content=t) for t in pages]
-
-    prompt_template = """Write a concise summary of the following:
+def summarize_agreement(docs):
+    prompt_template = """Write a concise summary of the Non-Disclosure agreement below. Use your knowledge as an expert on NDAs to identify the most important aspects of the agreement and include them in your summary. You can use the context below to help you understand the agreement:
 
     {text}
 
@@ -44,14 +45,14 @@ def summarize_agreement():
     PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
 
     refine_template = (
-        "Your job is to produce a final summary that includes any potential threats or red flags in the agreement\n"
+        "Your job is to produce a summary of this Non-Disclosure Agreement. It should provide as much detail to the reader as possible, while remaining concise.\n"
         "We have provided an existing summary up to a certain point: {existing_answer}\n"
-        "We have the opportunity to refine the existing summary and present any threats or red flags in the agreement, as well as suggestions for improvement\n"
+        "We have the opportunity to refine the existing summary and present it in a way that identifies the most salient points. Your aim is to identify the most important aspects of the agreement so that the user does not have to read it themselves.\n"
         "(only if needed) with some more context below.\n"
         "------------\n"
         "{text}\n"
         "------------\n"
-        "Given the new context, refine the original summary, and list any potential threats or red flags in the agreement\n"
+        "Given the new context, refine the original summary. Remember to identify and include the most important aspects of the agreement.\n"
         "If the context isn't useful, return the original summary."
     )
 
@@ -61,20 +62,33 @@ def summarize_agreement():
     )
 
     chain = load_summarize_chain(
-        OpenAI(temperature=0),
-        chain_type="map_reduce",
-        return_intermediate_steps=True
+        ChatOpenAI(temperature=0,model_name='gpt-3.5-turbo'),
+        chain_type="refine",
+        return_intermediate_steps=True,
+        question_prompt=PROMPT, refine_prompt=refine_prompt
     )
 
-    result = chain({"input_documents": pages}, return_only_outputs=True)
+    result = chain({"input_documents": docs}, return_only_outputs=True)
 
     return result
 
+def identify_red_flags(docs):
+    pass
+
+def identify_suggested_improvements(docs):
+    pass
+
 @app.route('/success')
 def success():
-    summary = summarize_agreement()
-    red_flags = "red flags"
-    suggested_improvements = "improvements"
+    docs = ingest_pdf()
+    agreement_summary = summarize_agreement(docs)
+    pretty_result = json.dumps(agreement_summary, indent=4)
+    print(pretty_result)
+    summary = agreement_summary["output_text"]
+
+    red_flags = identify_red_flags(docs)
+    suggested_improvements = identify_suggested_improvements(docs)
+
     return render_template('success.html', summary=summary, red_flags=red_flags, suggested_improvements=suggested_improvements)
 
 if __name__ == '__main__':
