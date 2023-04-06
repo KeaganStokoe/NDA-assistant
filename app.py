@@ -1,4 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for
+import concurrent.futures
+import os
+from dotenv import load_dotenv
+import json
+
 from langchain import OpenAI, PromptTemplate, LLMChain
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains.mapreduce import MapReduceChain
@@ -7,9 +12,6 @@ from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
 from langchain.document_loaders import PyPDFLoader
 from langchain.chat_models import ChatOpenAI
-import os
-from dotenv import load_dotenv
-import json
 
 # load environment variables from .env file
 load_dotenv()
@@ -122,16 +124,24 @@ def identify_suggested_improvements(docs):
 @app.route('/success')
 def success():
     docs = ingest_pdf()
-    # agreement_summary = summarize_agreement(docs)
-    # pretty_result = json.dumps(agreement_summary, indent=4)
-    # print(pretty_result)
-    # summary = agreement_summary["output_text"]
-    summary = "summary"
 
-    red_flags = identify_red_flags(docs)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Submit the three functions to the executor
+        summarize_agreement_future = executor.submit(summarize_agreement, docs)
+        identify_red_flags_future = executor.submit(identify_red_flags, docs)
+        identify_suggested_improvements_future = executor.submit(identify_suggested_improvements, docs)
+
+        # Get the results from the futures
+        agreement_summary = summarize_agreement_future.result()
+        red_flags = identify_red_flags_future.result()
+        suggested_improvements = identify_suggested_improvements_future.result()
+
+    pretty_result = json.dumps(agreement_summary, indent=4)
+    print(pretty_result)
+    summary = agreement_summary["output_text"]
+
     pretty_red_flags = json.dumps(red_flags, indent=4)
     print(pretty_red_flags)
-    suggested_improvements = identify_suggested_improvements(docs)
 
     return render_template('success.html', summary=summary, red_flags=red_flags, suggested_improvements=suggested_improvements)
 
