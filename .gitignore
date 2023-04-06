@@ -1,0 +1,9 @@
+myvenv
+/myvenv
+./myvenv
+
+agreements/
+
+.env
+
+todo.md
